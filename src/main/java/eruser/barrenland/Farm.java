@@ -9,28 +9,82 @@ import java.util.ListIterator;
  */
 public class Farm {
 
-    private LinkedList<Parcel> parcels = new LinkedList<>();
+    private LinkedList<LinkedList<Parcel>> fertileRegions = new LinkedList<>();
 
     public Farm(Integer minX, Integer minY, Integer maxX, Integer maxY){
-        parcels.add(new Parcel(minX, minY, maxX, maxY, false));
+
+        LinkedList<Parcel> initialParcel = new LinkedList<>();
+        initialParcel.add(new Parcel(minX, minY, maxX, maxY, false));
+        fertileRegions.add(initialParcel);
+
     }
 
     public void addBarrenParcel(Parcel barrenParcel){
 
-        ListIterator<Parcel> parcelsIterator = parcels.listIterator();
+        ListIterator<LinkedList<Parcel>> regionsIterator = fertileRegions.listIterator();
 
-        while(parcelsIterator.hasNext()){
-            Parcel nextParcel = parcelsIterator.next();
-            LinkedList<Parcel> splitParcels = ParcelUtil.splitParcel(nextParcel, barrenParcel);
-            parcelsIterator.remove();
-            for(Parcel splitParcel : splitParcels){
-                parcelsIterator.add(splitParcel);
+        while(regionsIterator.hasNext()) {
+
+            LinkedList<Parcel> parcels = regionsIterator.next();
+
+            ListIterator<Parcel> parcelsIterator = parcels.listIterator();
+
+            boolean hasSplitParcel = false;
+
+            while (parcelsIterator.hasNext()) {
+                Parcel nextParcel = parcelsIterator.next();
+                LinkedList<Parcel> splitParcels = ParcelUtil.splitParcel(nextParcel, barrenParcel);
+                if(null != splitParcels) {
+                    hasSplitParcel = true;
+                    parcelsIterator.remove();
+                    for (Parcel splitParcel : splitParcels) {
+                        parcelsIterator.add(splitParcel);
+                    }
+
+                    if(null == nextParcel.getNorth()){
+                        nextParcel.getNorthSplit().forEach(p -> p.getSouthSplit().addAll(splitParcels));
+                    }else{
+                        nextParcel.getNorth().getSouthSplit().addAll(splitParcels);
+                    }
+
+                    if(null == nextParcel.getWest()){
+                        nextParcel.getWestSplit().forEach(p -> p.getEastSplit().addAll(splitParcels));
+                    }else{
+                        nextParcel.getWest().getEastSplit().addAll(splitParcels);
+                    }
+
+                    if(null == nextParcel.getSouth()){
+                        nextParcel.getSouthSplit().forEach(p -> p.getNorthSplit().addAll(splitParcels));
+                    }else{
+                        nextParcel.getSouth().getNorthSplit().addAll(splitParcels);
+                    }
+
+                    if(null == nextParcel.getEast()){
+                        nextParcel.getEastSplit().forEach(p -> p.getWestSplit().addAll(splitParcels));
+                    }else{
+                        nextParcel.getEast().getWestSplit().addAll(splitParcels);
+                    }
+
+                }
             }
+
+            if(hasSplitParcel) {
+
+                parcels.forEach(Parcel::reconcileNeighbors);
+
+                LinkedList<LinkedList<Parcel>> splitRegions = ParcelUtil.splitRegion(parcels);
+
+                regionsIterator.remove();
+                for (LinkedList<Parcel> region : splitRegions) {
+                    regionsIterator.add(region);
+                }
+            }
+
         }
     }
 
-    public LinkedList<Parcel> getParcels(){
-        return parcels;
+    public LinkedList<LinkedList<Parcel>> getParcels(){
+        return fertileRegions;
     }
 
 }

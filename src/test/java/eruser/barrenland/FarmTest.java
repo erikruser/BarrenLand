@@ -17,11 +17,13 @@ public class FarmTest {
 
         farm.addBarrenParcel(new Parcel(0, 292, 399, 307, true));
 
-        LinkedList<Parcel> splitParcels = farm.getParcels();
+        LinkedList<LinkedList<Parcel>> regions = farm.getParcels();
 
-        for(Parcel parcel : splitParcels){
-            System.out.println("[" + parcel.getMinX() + "," + parcel.getMinY() + "],[" +
-                    parcel.getMaxX() + "," + parcel.getMaxY() + "] " + (parcel.isBarren() ? "*" : ""));
+        for(LinkedList<Parcel> splitParcels : regions) {
+            for (Parcel parcel : splitParcels) {
+                System.out.println("[" + parcel.getMinX() + "," + parcel.getMinY() + "],[" +
+                        parcel.getMaxX() + "," + parcel.getMaxY() + "] " + (parcel.isBarren() ? "*" : ""));
+            }
         }
 
     }
@@ -36,11 +38,17 @@ public class FarmTest {
         farm.addBarrenParcel(new Parcel(260, 52, 275, 547, true));
 
 
-        LinkedList<Parcel> splitParcels = farm.getParcels();
+        LinkedList<LinkedList<Parcel>> regions = farm.getParcels();
 
-        for(Parcel parcel : splitParcels){
-            System.out.println("[" + parcel.getMinX() + "," + parcel.getMinY() + "],[" +
-                    parcel.getMaxX() + "," + parcel.getMaxY() + "] " + (parcel.isBarren() ? "*" : ""));
+        int i = 0;
+
+        for(LinkedList<Parcel> region : regions) {
+            System.out.println("Region:");
+            for (Parcel parcel : region) {
+                i++;
+                System.out.println("  " + i + ": [" + parcel.getMinX() + "," + parcel.getMinY() + "],[" +
+                        parcel.getMaxX() + "," + parcel.getMaxY() + "] " + (parcel.isBarren() ? "*" : ""));
+            }
         }
     }
 

@@ -1,11 +1,13 @@
 package eruser.barrenland;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 
 /**
  * Created by erikruser on 9/10/16.
  */
 public class ParcelUtil {
+
 
     private static class CoordinatePair {
 
@@ -98,23 +100,100 @@ public class ParcelUtil {
 
                 boolean isBarrenParcel = toSplit.isBarren();
 
-                if(splitMinX <= splitBy.getMaxX() && splitMaxX >= splitBy.getMinX() &&
-                     splitMinY <= splitBy.getMaxY() && splitMaxY >= splitBy.getMinY()){
+                if(splitMinX <= splitBy.getMaxX() &&
+                        splitMaxX >= splitBy.getMinX() &&
+                        splitMinY <= splitBy.getMaxY() &&
+                        splitMaxY >= splitBy.getMinY()){
                     isBarrenParcel = true;
                 }
 
-                Parcel parcel = new Parcel(
-                        splitMinX,
-                        splitMinY,
-                        splitMaxX,
-                        splitMaxY,
-                        isBarrenParcel);
+                if(!isBarrenParcel) {
+                    Parcel parcel = new Parcel(
+                            splitMinX,
+                            splitMinY,
+                            splitMaxX,
+                            splitMaxY,
+                            isBarrenParcel);
 
-                splitParcels.add(parcel);
+
+                    splitParcels.add(parcel);
+                }
             }
         }
 
+        if(splitParcels.size() == 1 && !splitParcels.getLast().isBarren()){
+            return null;
+        }
+
+        splitParcels.forEach(p -> {
+            if(null == toSplit.getNorth()){
+                p.setNorthSplit(toSplit.getNorthSplit());
+            }else{
+                p.setNorth(toSplit.getNorth());
+            }
+            p.getNorthSplit().addAll(splitParcels);
+
+            if(null == toSplit.getWest()){
+                p.setWestSplit(toSplit.getWestSplit());
+            }else{
+                p.setWest(toSplit.getWest());
+            }
+            p.getWestSplit().addAll(splitParcels);
+
+            if(null == toSplit.getSouth()){
+                p.setSouthSplit(toSplit.getSouthSplit());
+            }else{
+                p.setSouth(toSplit.getSouth());
+            }
+            p.getSouthSplit().addAll(splitParcels);
+
+            if(null == toSplit.getEast()) {
+                p.setEastSplit(toSplit.getEastSplit());
+            }else{
+                p.setEast(toSplit.getEast());
+            }
+            p.getEastSplit().addAll(splitParcels);
+        });
+
         return splitParcels;
+
+    }
+
+
+    public static LinkedList<LinkedList<Parcel>> splitRegion(LinkedList<Parcel> parcels) {
+
+        LinkedList<LinkedList<Parcel>> splitRegions = new LinkedList<>();
+
+/*
+        while(parcels.size() > 0){
+
+            HashSet<Parcel> splitRegionParcels = new HashSet<>();
+
+            visit(parcels.getFirst(), splitRegionParcels, parcels);
+
+            LinkedList<Parcel> contiguousParcels = new LinkedList<>();
+            contiguousParcels.addAll(splitRegionParcels);
+            splitRegions.add(contiguousParcels);
+
+        }
+
+        */
+splitRegions.add(parcels);
+
+        return splitRegions;
+    }
+
+
+    private static void visit(Parcel parcel, HashSet<Parcel> splitRegionParcels, LinkedList<Parcel> parcels){
+        if(null == parcel || splitRegionParcels.contains(parcel)){
+            return;
+        }
+        parcels.remove(parcel);
+        splitRegionParcels.add(parcel);
+        visit(parcel.getNorth(), splitRegionParcels, parcels);
+        visit(parcel.getWest(), splitRegionParcels, parcels);
+        visit(parcel.getSouth(), splitRegionParcels, parcels);
+        visit(parcel.getEast(), splitRegionParcels, parcels);
 
     }
 
